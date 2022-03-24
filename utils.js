@@ -4,4 +4,9 @@ function unique(arr) {
   return uniq;
 }
 
-module.exports = { unique };
+function tabulate(header, data) {
+  console.log(header);
+  console.table(data);
+}
+
+module.exports = { unique, tabulate, log };
