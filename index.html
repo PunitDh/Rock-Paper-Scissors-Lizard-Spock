@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rock Paper Scissors Lizard Spock</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+</head>
+
+<body>
+  <h1>Rock Paper Scissors Lizard Spock</h1>
+  <details style="cursor: pointer;">
+    <summary>Rules:</summary>
+    <ul>
+      <li>Scissors cuts Paper</li>
+      <li>Paper covers Rock</li>
+      <li>Rock crushes Lizard</li>
+      <li>Lizard poisons Spock</li>
+      <li>Spock smashes Scissors</li>
+      <li>Scissors decapitates Lizard</li>
+      <li>Lizard eats Paper</li>
+      <li>Paper disproves Spock</li>
+      <li>Spock vaporizes Rock</li>
+      <li>Rock crushes Scissors</li>
+      <li>(and as it always has) Rock crushes Scissors</li>
+    </ul>
+  </details>
+  <div class="game-container">
+    <div class="notice-container">
+      <div id="error"><b>Error:</b>&nbsp;<span id="error-message"></span></div>
+      <div id="notice"><b>Notice:</b>&nbsp;<span id="notice-message"></span></div>
+    </div>
+    <div class="play-container">
+      <div id='score-container'>
+        <div>
+          <span class="status" id="current-user-score-name"></span><span id="current-score-number"></span>
+        </div>
+        <div>
+          <span class="status" id="opponent-user-score-name"></span><span id="opponent-score-number"></span>
+        </div>
+      </div>
+      <div id='status-container'>
+        <div class="status" id="current-user">Waiting...</div>
+        <div class="status" id="opponent-user">Waiting...</div>
+      </div>
+      <div id="endgame-container"></div>
+    </div>
+    <form id="username-container">
+      Please enter username: <input type="text" id="username" autocomplete="off">
+      <button type="submit" id="submit-button">Submit</button>
+    </form>
+    <div class="btn-container" id="btn-container">
+      <a href="#" id='btn-rock' class="btn btn-rock">Rock</a>
+      <a href="#" id='btn-paper' class="btn btn-paper">Paper</a>
+      <a href="#" id='btn-scissors' class="btn btn-scissors">Scissors</a>
+      <a href="#" id='btn-lizard' class="btn btn-lizard">Lizard</a>
+      <a href="#" id='btn-spock' class="btn btn-spock">Spock</a>
+    </div>
+  </div>
+
+
+
+  <script>
+    const socket = io();
+    const currentUserStatus = document.getElementById("current-user");
+    const opponentUserStatus = document.getElementById("opponent-user");
+    const btnContainer = document.getElementById("btn-container");
+    const form = document.getElementById("username-container");
+    const endgameContainer = document.getElementById("endgame-container");
+    const username = document.getElementById("username");
+    const error = document.getElementById("error");
+    const errorMessage = document.getElementById("error-message");
+    const notice = document.getElementById("notice");
+    const noticeMessage = document.getElementById("notice-message");
+    const usernameContainer = document.getElementById("username-container");
+    const btnRock = document.getElementById("btn-rock");
+    const btnPaper = document.getElementById("btn-paper");
+    const btnScissors = document.getElementById("btn-scissors");
+    const btnLizard = document.getElementById("btn-lizard");
+    const btnSpock = document.getElementById("btn-spock");
+    const btnSubmit = document.getElementById("btn-submit");
+    const currentUserScoreName = document.getElementById("current-user-score-name");
+    const opponentUserScoreName = document.getElementById("opponent-user-score-name");
+    const currentUserScore = document.getElementById("current-score-number");
+    const opponentUserScore = document.getElementById("opponent-score-number");
+
+    const buttons = [btnRock, btnPaper, btnScissors, btnLizard, btnSpock]
+
+    username.focus()
+
+    function showStatus(type, messageBox, message) {
+      messageBox.textContent = message;
+      type.style.display = 'flex'
+      setTimeout(() => {
+        type.style.display = 'none'
+      }, 3000)
+    }
+
+    const userTypes = {
+      opponent: opponentUserStatus,
+      current: currentUserStatus,
+      endGame: endgameContainer
+    }
+
+    function updateStatus(user, message, color = 'white') {
+      user.textContent = '';
+      addStatus(user, message, color);
+    }
+
+    function addStatus(user, message, color = 'white') {
+      const elem = document.createElement('div')
+      elem.textContent = message;
+      elem.style.color = color;
+      elem.style.marginBottom = '0.5rem'
+      user.appendChild(elem)
+    }
+
+    buttons.forEach(button => {
+      button.addEventListener('click', e => {
+        e.preventDefault()
+        const move = button.textContent;
+        socket.emit('make-move', { name: username.value, move })
+        updateStatus(userTypes.current, `You picked: ${move}`)
+        disablePlayButtons()
+      })
+    })
+
+    function disablePlayButtons() {
+      btnContainer.style.display = 'none'
+    }
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      if (!username.value) {
+        showStatus(error, errorMessage, `Username cannot be null`)
+        btnContainer.style.display = 'none'
+      } else {
+        btnContainer.style.display = 'flex'
+        socket.emit("new-user", username.value);
+        error.style.display = 'none'
+        usernameContainer.style.display = 'none'
+        updateStatus(userTypes.current, 'Connected!', 'green')
+      }
+    })
+
+    socket.on('room-joining-message', (room, name) => {
+      if (name === username.value) {
+        showStatus(notice, noticeMessage, `You joined room: ${room.slice(0, room.lastIndexOf('-'))}`)
+      }
+    })
+
+    socket.on('opponent-joining-message', opponent => {
+      const opponentName = opponent.filter(user => user.name !== username.value)[0].name
+      updateStatus(userTypes.opponent, `${opponentName} connected!`, 'green')
+      currentUserScoreName.textContent = `Your score: `
+      opponentUserScoreName.textContent = `${opponentName} score: `
+      currentUserScore.textContent = String(0)
+      opponentUserScore.textContent = String(0)
+    })
+
+    socket.on('disconnect-message', user => {
+      showStatus(notice, noticeMessage, `${user.name} disconnected.`)
+    })
+
+    socket.on('all-moves-in', () => {
+      updateStatus(userTypes.endGame, "All moves are in!")
+    })
+
+    socket.on('winner-decided', (winner, method, moves, scores) => {
+
+      console.log({ winner, method, moves })
+      const opponent = moves.filter(user => user.name !== username.value)[0]
+
+      setTimeout(() => {
+        updateStatus(userTypes.opponent, `${opponent.name} picked: ${opponent.move}`)
+      }, 2000)
+
+
+      setTimeout(() => {
+        updateStatus(userTypes.endGame, winner == "Tie" ? "It's a tie!" : `${winner.move} ${method}`)
+      }, 4000)
+
+      setTimeout(() => {
+        const str = winner == "Tie" ? "It's a tie!" : winner.name !== username.value ? "\nYou lose" : "\nYou win"
+        const col = winner == "Tie" ? "blue" : winner.name !== username.value ? 'red' : 'green'
+        addStatus(userTypes.endGame, str, col)
+        if (winner.name !== username.value) {
+          opponentUserScore.textContent = scores[opponent.name]
+        } else {
+          currentUserScore.textContent = scores[username.value]
+        }
+      }, 6000)
+
+      setTimeout(() => {
+        updateStatus(userTypes.endGame, "")
+        btnContainer.style.display = 'flex'
+        updateStatus(userTypes.current, "Play a move...")
+        updateStatus(userTypes.opponent, "Play a move...")
+        socket.emit('new-game', username.value)
+      }, 8000)
+    })
+
+    socket.on('one-move-in', remaining => {
+      updateStatus(userTypes.opponent, `Waiting on ${remaining.name == username.value ? 'your' : `${remaining.name}'s`} move...`, 'white')
+    })
+
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,216 @@
+.btn {
+  width: 3rem;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #ffffff;
+  font-family: Arial;
+  font-size: 1.25rem;
+  font-weight: bold;
+  padding: 1rem 2rem;
+  text-decoration: none;
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.btn-container {
+  display: none;
+  align-items: center;
+  width: 90%;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 4rem;
+}
+
+.btn-rock {
+  box-shadow: 0px 10px 14px -7px #276873;
+  background: linear-gradient(to bottom, #599bb3 5%, #408c99 100%);
+  background-color: #599bb3;
+  text-shadow: 0px 1px 0px #3d768a;
+}
+
+.btn-rock:hover {
+  background: linear-gradient(to bottom, #408c99 5%, #599bb3 100%);
+  background-color: #408c99;
+}
+
+.btn-rock:active {
+  position: relative;
+  top: 1px;
+}
+
+.btn-lizard {
+  box-shadow: 0px 10px 14px -7px #732727;
+  background: linear-gradient(to bottom, #b35959 5%, #994048 100%);
+  background-color: #b35959;
+  text-shadow: 0px 1px 0px #8a3e3e;
+}
+
+.btn-lizard:hover {
+  background: linear-gradient(to bottom, #994048 5%, #b35959 100%);
+  background-color: #994048;
+}
+
+.btn-lizard:active {
+  position: relative;
+  top: 1px;
+}
+
+.btn-scissors {
+  box-shadow: 0px 10px 14px -7px #3dc21b;
+  background: linear-gradient(to bottom, #44c767 5%, #5cbf2a 100%);
+  background-color: #44c767;
+  text-shadow: 0px 1px 0px #2f6627;
+}
+
+.btn-scissors:hover {
+  background: linear-gradient(to bottom, #5cbf2a 5%, #44c767 100%);
+  background-color: #5cbf2a;
+}
+
+.btn-scissors:active {
+  position: relative;
+  top: 1px;
+}
+
+.btn-paper {
+  box-shadow: 0px 10px 14px -7px #91b8b3;
+  background: linear-gradient(to bottom, #768d87 5%, #6c7c7c 100%);
+  background-color: #768d87;
+  text-shadow: 0px 1px 0px #2b665e;
+}
+
+.btn-paper:hover {
+  background: linear-gradient(to bottom, #6c7c7c 5%, #768d87 100%);
+  background-color: #6c7c7c;
+}
+
+.btn-paper:active {
+  position: relative;
+  top: 1px;
+}
+
+.btn-spock {
+  box-shadow: 0px 10px 14px -7px #29bbff;
+  background: linear-gradient(to bottom, #2dabf9 5%, #0688fa 100%);
+  background-color: #2dabf9;
+  text-shadow: 0px 1px 0px #263666;
+}
+
+.btn-spock:hover {
+  background: linear-gradient(to bottom, #0688fa 5%, #2dabf9 100%);
+  background-color: #0688fa;
+}
+
+.btn-spock:active {
+  position: relative;
+  top: 1px;
+}
+
+h1 {
+  font-family: sans-serif;
+  text-align: center;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 100vh;
+  flex-direction: column;
+  font-family: Arial;
+  background-color: rgb(27, 26, 26);
+  color: white;
+  text-shadow: 0 0 1px rgb(0, 0, 0), 0 0 20px rgb(3, 3, 3), 0 0 3px #0a0606,
+    0 0 4px #07151d, 0 0 10px #1a1b1d, 0 0 6px #171b22, 0 0 7px #0c0925;
+}
+
+.play-container {
+  width: 100%;
+  height: 70%;
+  border: 1px solid white;
+  border-radius: 2%;
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: center;
+  font-family: Arial;
+  color: red;
+  font-weight: bolder;
+  background-color: #0a0a0a;
+}
+
+#endgame-container {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+#status-container,
+#score-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  width: 100%;
+  flex-direction: row;
+}
+
+#score-container {
+  color: white;
+}
+
+.game-container {
+  display: flex;
+  width: 80%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+#username-container {
+  font-family: Arial;
+}
+
+.username-container input {
+  font-family: Arial;
+}
+
+#error,
+#notice {
+  background-color: #ffecec;
+  border: 1px solid #f5aca6;
+  width: 100%;
+  padding: 0.1rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  display: none;
+  height: 100%;
+  align-items: center;
+  color: #ff0000;
+  border-radius: 5px;
+  font-family: Tahoma, Geneva, Arial, sans-serif;
+  font-size: 1em;
+  margin-bottom: 1em;
+  text-shadow: none;
+}
+
+#notice {
+  background-color: #e3f7fc;
+  color: #104705;
+  border-color: #8ed9f6;
+}
+
+.notice-container {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  height: 2rem;
+}
