@@ -95,4 +95,6 @@ io.on("connection", (socket) => {
   });
 });
 
-http.listen(5010, () => console.log("Server started on port 5010"));
+http.listen(process.env.PORT || 5010, () =>
+  console.log("Server started on port", process.env.PORT)
+);
