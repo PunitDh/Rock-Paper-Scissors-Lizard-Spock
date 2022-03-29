@@ -8,7 +8,7 @@
   <title>Rock Paper Scissors Lizard Spock</title>
   <link rel="stylesheet" href="style.css">
   <script src="/socket.io/socket.io.js"></script>
-  <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+  <script src="jqu.js"></script>
 </head>
 
 <body>
@@ -153,8 +153,8 @@
       }
     })
 
-    socket.on('opponent-joining-message', opponent => {
-      const opponentName = opponent.filter(user => user.name !== username.value)[0].name
+    socket.on('opponent-joining-message', users => {
+      const opponentName = users.filter(user => user.name !== username.value)[0].name
       updateStatus(userTypes.opponent, `${opponentName} connected!`, 'green')
       currentUserScoreName.textContent = `Your score: `
       opponentUserScoreName.textContent = `${opponentName} score: `
@@ -163,25 +163,25 @@
     })
 
     socket.on('disconnect-message', user => {
-      showStatus(notice, noticeMessage, `${user.name} disconnected.`)
+      user && showStatus(notice, noticeMessage, `${user.name} disconnected.`)
     })
 
     socket.on('all-moves-in', () => {
       updateStatus(userTypes.endGame, "All moves are in!")
     })
 
-    socket.on('winner-decided', (winner, method, moves, scores) => {
+    socket.on('winner-decided', ({ winner, method, moves, scores }) => {
 
-      console.log({ winner, method, moves })
-      const opponent = moves.filter(user => user.name !== username.value)[0]
+      const opponent = moves.find(move => move.playerName !== username.value)
+      const winnerMove = moves.find(move => move.playerName === winner.name).move
 
       setTimeout(() => {
-        updateStatus(userTypes.opponent, `${opponent.name} picked: ${opponent.move}`)
+        updateStatus(userTypes.opponent, `${opponent.playerName} picked: ${opponent.move}`)
       }, 2000)
 
 
       setTimeout(() => {
-        updateStatus(userTypes.endGame, winner == "Tie" ? "It's a tie!" : `${winner.move} ${method}`)
+        updateStatus(userTypes.endGame, winner == "Tie" ? "It's a tie!" : `${winnerMove} ${method}`)
       }, 4000)
 
       setTimeout(() => {
@@ -189,7 +189,7 @@
         const col = winner == "Tie" ? "blue" : winner.name !== username.value ? 'red' : 'green'
         addStatus(userTypes.endGame, str, col)
         if (winner.name !== username.value) {
-          opponentUserScore.textContent = scores[opponent.name]
+          opponentUserScore.textContent = scores[opponent.playerName]
         } else {
           currentUserScore.textContent = scores[username.value]
         }

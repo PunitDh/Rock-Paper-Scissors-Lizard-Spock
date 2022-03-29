@@ -2,120 +2,201 @@ class Game {
   constructor() {
     this.rooms = [];
     this.players = [];
+    this.sockets = [];
+    this.WINNERS = {
+      Rock: ["Scissors", "Lizard"],
+      Scissors: ["Paper", "Lizard"],
+      Paper: ["Rock", "Spock"],
+      Lizard: ["Spock", "Paper"],
+      Spock: ["Scissors", "Rock"],
+    };
+
+    this.WINNING_METHODS = {
+      Rock: ["crushes Scissors", "crushes Lizard"],
+      Scissors: ["cuts Paper", "decapitates Lizard"],
+      Paper: ["covers Rock", "disproves Spock"],
+      Lizard: ["poisons Spock", "eats Paper"],
+      Spock: ["smashes Scissors", "vaporizes Rock"],
+    };
   }
 
-  get roomIDs() {
-    return this.rooms.map((room) => room.id);
+  tabulate(header, data) {
+    console.log(header);
+    console.table(data);
   }
 
-  get playerIds() {
-    return this.players.map((player) => player.id);
+  createNewSocket(socketId, name) {
+    const socket = new Socket(socketId, name);
+    this.sockets.push(socket);
   }
 
-  createRoom(roomName) {
-    const room = new Room(roomName);
-    room.id = `Room-${roomName}-${this.rooms.length}`;
-    this.rooms.push(room);
-    return room;
+  getPlayerBySocketId(socketId) {
+    return this.players.filter((player) =>
+      player.socketId.includes(socketId)
+    )[0];
   }
 
-  createPlayer(playerName, socketId) {
-    const player = new Player(playerName, socketId);
+  deleteRoomByPlayerName(name) {
+    this.rooms = this.rooms.filter(
+      (room) => !room.players.map((player) => player.name).includes(name)
+    );
+  }
+
+  deletePlayerBySocketId(socketId) {
+    this.players = this.players.filter(
+      (player) => !player.id.includes(socketId)
+    );
+  }
+
+  getOpponent(player) {
+    return this.getPlayerByPlayerId(
+      player.room.players.find((pId) => pId !== player.id)
+    );
+  }
+
+  getPlayerByName(name) {
+    return this.players.find((player) => player.name === name);
+  }
+
+  createNewPlayer(name, socketId) {
+    const player = new Player(name, socketId);
     this.players.push(player);
+    player.joinRoom(this.players, this.rooms);
+    this.rooms = this.players.map((player) => player.room);
     return player;
   }
 
-  findPlayerByPlayerId(playerId) {
-    return this.players.filter((player) => player.id === playerId)[0];
+  assignPlayerToRoom(player, room) {}
+
+  getAllRooms() {
+    return this.rooms;
   }
 
-  findRoomByRoomId(roomId) {
-    return this.rooms.filter((room) => room.id === roomId)[0];
+  getCurrentPlayersRoom(player) {
+    return player.room;
   }
 
-  findPlayersInRoom(room) {
-    return this.rooms.filter((r) => room.id === r.id)[0].players;
+  getCurrentPlayers() {
+    return this.players;
   }
 
-  addPlayerToRoom(roomId, player) {
-    const room = this.findRoomByRoomId(roomId);
-    const player = this.findPlayerByPlayerId(player.id);
-    room.addPlayer(player);
+  findRoomByPlayerName(name) {
+    return this.players
+      .map((player) => {
+        if (player.name === name) return player.room;
+      })
+      .filter((n) => n)[0];
   }
 
-  deleteRoom(roomId) {
-    this.rooms = this.rooms.filter((room) => room.id !== roomId);
+  getPlayerByPlayerId(playerId) {
+    return this.players.find((player) => player.id === playerId);
+  }
+
+  setDefaultScores(room) {
+    const playerNames = room.players.map(
+      (playerId) => this.getPlayerByPlayerId(playerId).name
+    );
+
+    room.scores = {
+      [playerNames[0]]: 0,
+      [playerNames[1]]: 0,
+    };
+  }
+
+  getRemainingPlayer(room) {
+    const lastMovePlayerName = room.moves[0].playerName;
+    return this.players.find((player) => player.name !== lastMovePlayerName);
+  }
+
+  decideWinner(room) {
+    const [move1, move2] = room.moves.map((m) => m.move);
+
+    console.log({ move1, move2 });
+
+    const findWinner = (move1, move2) => {
+      if (this.WINNERS[move1].includes(move2)) {
+        const winner = this.getPlayerByName(
+          room.moves.find((m) => m.move === move1).playerName
+        );
+        const method =
+          this.WINNING_METHODS[move1][this.WINNERS[move1].indexOf(move2)];
+        return { winner, method };
+      }
+    };
+
+    if (move1 === move2) {
+      return { winner: "Tie", method: "Tie" };
+    } else {
+      const winner1 = findWinner(move1, move2);
+      const winner2 = findWinner(move2, move1);
+
+      return winner1 || winner2;
+    }
   }
 }
 
-const game = new Game();
+class Socket {
+  constructor(id, name) {
+    this.id = id;
+    this.name = name;
+  }
+}
 
 class Player {
   constructor(name, socketId) {
-    this.game = game;
     this.name = name;
+    this.socketId = socketId;
     this.id = `Player-${socketId}`;
-    this.room = null;
   }
 
-  find(finder) {
-    if (typeof finder === "string") {
-      return this.game.findPlayerByPlayerId(finder);
+  playMove(move) {
+    this.room.moves.push(new Move(this.name, move));
+  }
+
+  joinRoom(players, rooms) {
+    if (players.length % 2 == 0 && players.length > 0) {
+      this.room = rooms[rooms.length - 1];
+    } else {
+      this.room = new Room(this);
     }
-  }
-
-  get opponent() {
-    return this.room;
-  }
-
-  assignRoom(roomId) {
-    this.game.addPlayerToRoom(roomId, this);
+    this.room.players.push(this.id);
   }
 }
 
 class Room {
-  constructor(roomName) {
-    this.game = game;
-    this.roomName = roomName;
+  constructor(player) {
     this.players = [];
+    this.id = `Room-${player.name}-${player.socketId}`;
     this.scores = {};
     this.moves = [];
   }
 
-  setScore(player, score) {
-    if (player.name in this.scores) {
-      scores[player.id] = score;
-    }
+  get playerLength() {
+    return this.players.length;
   }
 
-  getScore(player) {
-    if (player.id in this.scores) {
-      return scores[player.name];
-    }
+  getMoves() {
+    return this.moves;
   }
 
-  addPlayer(player) {
-    player.room = this.id;
-    this.players.push(player);
+  clearMoves() {
+    this.moves = [];
   }
 
-  find(roomId) {
-    if (typeof roomId === "string") {
-      return this.game.findRoomByRoomId();
-    }
+  incrementScore(name, score = 1) {
+    this.scores[name] += score;
   }
 
-  getAllPlayers() {
-    return this.players;
-  }
-
-  getPlayer(playerId) {
-    return this.players.filter((player) => player.id === playerId)[0];
+  getScores() {
+    return this.scores;
   }
 }
 
-function Moves() {
-  return game.moves;
+class Move {
+  constructor(playerName, move) {
+    this.playerName = playerName;
+    this.move = move;
+  }
 }
 
-module.exports = { Player, Room, Moves };
+module.exports = { Game, Player, Room };
